@@ -22,9 +22,9 @@ class BaseCamp:
 		self.password = password
 
 		if token == '':
-			self.headers['Authorization'] = 'Basic ' + user + ': ' + password # This is most likely not correct
+			self.headers['Authorization'] = 'Basic ' + user + ': ' + password
 		else:
-			self.headers['Authorization'] = 'Basic ' + self.token #MGU3YWQ3NTYzNTJiZWQ3MDlhMGI4MDMzYTFkMDhiZmExNjc3YTc2YTpY'
+			self.headers['Authorization'] = 'Basic ' + self.token
 
 	def set_host(self, host):
 		self.host = host
@@ -203,4 +203,20 @@ class BaseCamp:
 		category = response.read()
 		return response.status, category
 
+
+	def get_messages_for_project(self, project):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/projects/' + project + '/posts.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		messages = response.read()
+		return response.status, messages
+
+	def get_message(self, message):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/posts/' + message + '.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		message = response.read()
+		return response.status, message
 

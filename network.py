@@ -1,4 +1,5 @@
 import httplib
+from xml.dom import minidom
 
 class BaseCamp:
 	"""A simple example classe """
@@ -53,9 +54,9 @@ class BaseCamp:
 		projects = response.read()
 		return response.status, projects
 
-	def get_project(self, project_id):
+	def get_project(self, project):
 		self.connection = httplib.HTTPSConnection(self.host)
-		self.connection.request('GET', '/projects/' + project_id + '.xml', headers=self.headers)
+		self.connection.request('GET', '/projects/' + project + '.xml', headers=self.headers)
 
 		response = self.connection.getresponse()
 		project = response.read()
@@ -95,5 +96,111 @@ class BaseCamp:
 		people = response.read()
 		return response.status, people
 
+	def get_person(self, person):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/people/' + person + '.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		person = response.read()
+		return response.status, person
+
+
+	def get_companies(self):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/companies.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		companies = response.read()
+		return response.status, companies
+
+	def get_companies_for_project(self, project):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/projects/' + project + '/companies.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		companies = response.read()
+		return response.status, companies
+
+	def get_company(self, company):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/companies/' + company + '.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		company = response.read()
+		return response.status, company
+
+
+	def get_categories_for_project(self, project, type_filter=''):
+		self.connection = httplib.HTTPSConnection(self.host)
+		if type_filter == 'post' or type_filter == 'attachment':
+			path = '/projects/' + project + '/categories.xml?=' + type_filter
+		else:
+			path = '/projects/' + project + '/categories.xml'
+		self.connection.request('GET', path, headers=self.headers)
+
+		response = self.connection.getresponse()
+		categories = response.read()
+		return response.status, categories
+
+	def get_category(self, category):
+		self.connection = httplib.HTTPSConnection(self.host)
+		self.connection.request('GET', '/categories/' + category + '.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		category = response.read()
+		return response.status, category
+
+# Should work not tested.
+	def create_category_for_project(self, project, category_name, type_filter=''):
+		self.connection = httplib.HTTPSConnection(self.host)
+		
+		xml = minidom.Document()
+		category = xml.createElement("category")
+		
+		if type_filter == 'post' or type_filter == 'attachment':
+			type_element = xml.createElement('type')
+			type_node = xml.createTextNode(type_filter)
+			type_element.appendChild(type_node)
+			category.appendChild(type_element)
+
+		name_element = xml.createElement('name')
+		name_node = xml.createTextNode(category_name)
+		name_element.appendChild(name_node)
+		category.appendChild(name_element)
+		xml.appendChild(category)
+
+		self.connection.request('POST', '/projects/' + project + '/categories.xml', body=xml.toprettyxml(), headers=self.headers)
+
+		response = self.connection.getresponse()
+		category = response.read()
+		return response.status, category
+
+# Should work not tested.
+	def update_category_for_project(self, project, category, category_name):
+		self.connection = httplib.HTTPSConnection(self.host)
+		
+		xml = minidom.Document()
+		category = xml.createElement("category")
+		name_element = xml.createElement('name')
+		name_node = xml.createTextNode(category_name)
+		name_element.appendChild(name_node)
+		category.appendChild(name_element)
+		xml.appendChild(category)
+
+		self.connection.request('PUT', '/categories/' + category + '.xml', xml.toprettyxml(), headers=self.headers)
+
+		response = self.connection.getresponse()
+		category = response.read()
+		return response.status, category
+
+# Should work not tested.
+	def delete_category(self, category):
+		self.connection = httplib.HTTPSConnection(self.host)
+
+		self.connection.request('DELETE', '/categories/' + category + '.xml', headers=self.headers)
+
+		response = self.connection.getresponse()
+		category = response.read()
+		return response.status, category
 
 
